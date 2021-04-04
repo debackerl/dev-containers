@@ -1,0 +1,50 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: dotnet-dev-pod
+  namespace: laurent
+spec:
+  securityContext:
+    fsGroup: 1001
+  containers:
+    - name: dotnet-dev-pod
+      image: 'debackerl/dotnet-dev-env:5.0.0'
+      imagePullPolicy: IfNotPresent
+      command:
+        - /sbin/entrypoint.sh
+      args:
+        - '/usr/sbin/sshd'
+        # listen TCP port
+        - '-p'
+        - '2222'
+        # config file
+        - '-f'
+        - '/home/developer/.ssh/sshd_config'
+        # don't become a daemon
+        - '-D'
+        # log to stderr instead of syslog
+        - '-e'
+      ports:
+        - name: ssh
+          containerPort: 2222
+          protocol: TCP
+      env:
+      - name: AUTHORIZED_KEYS
+        value: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDwx3Skc24beTvUByLthWAc6uqV5uWmKJb/+BZqyLb0YWJ3htO+NYIOHCQ3lW2b6B2StaHmlpg2yJns3dqRxGdDiJ+1GnRf2IV4pXrOQLKEqy4mz2HFEqdkcu/3EToRx/YQkq53Dfb7t3b7qz47GEZMvjkzaw9M1e/DGBEqwWCr8fjF82eDk0uhTt1ZXagPbwM3d1Rze/v3DBWyB2EiyvG/ovor1xuXjZSKpbbBEYSUyF674LTWgNYa4JsuvB6Dy0Z6b5/V/sdKPdbSrQMSeds+YTcqdbbKhpe9sHYzuf2treAZvTJoD2DbfsmUZXVBsA3N9pRqO4PKhefkWJwwXkr debackerl@gmail.com"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: 2000m
+          memory: 2048Mi
+      livenessProbe:
+        tcpSocket:
+          port: 2222
+        initialDelaySeconds: 10
+        periodSeconds: 30
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 30
+  serviceAccountName: default
+  serviceAccount: default
+  automountServiceAccountToken: true
